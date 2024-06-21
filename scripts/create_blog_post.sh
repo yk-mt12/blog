@@ -4,15 +4,46 @@
 DIRECTORY=~/blog/articles
 DATE=$(date +%Y%m%d)
 
-# 引数が0または1つ必要
-if [ $# -gt 1 ]; then
-  echo "使用方法: $0 [ファイル名]"
-  exit 1
-fi
+# ヘルプメッセージ
+show_help() {
+  echo "使用方法: $0 [-t タイトル] [ファイル名]"
+  echo
+  echo "オプション:"
+  echo "  -t タイトル     ファイルのタイトルを指定"
+  echo "  -h              ヘルプメッセージを表示"
+}
+
+# オプション解析
+while getopts ":t:h" opt; do
+  case $opt in
+    t)
+      TITLE=$OPTARG
+      ;;
+    h)
+      show_help
+      exit 0
+      ;;
+    \?)
+      echo "無効なオプション: -$OPTARG" >&2
+      show_help
+      exit 1
+      ;;
+    :)
+      echo "オプション -$OPTARG には引数が必要です" >&2
+      show_help
+      exit 1
+      ;;
+  esac
+done
+
+shift $((OPTIND - 1))
 
 # ファイル名を設定（デフォルトは "blog_post"）
-if [ $# -eq 1 ]; then
-  BASENAME=$1
+if [ -n "$TITLE" ]; then
+  BASENAME=$TITLE
+elif [ $# -eq 1 ]; then
+  show_help
+  exit 1
 else
   BASENAME="blog_post"
 fi
@@ -22,7 +53,7 @@ FILENAME=$DATE-$BASENAME.md
 # 保存先パス
 FILEPATH=$DIRECTORY/$FILENAME
 
-# テキスト内容
+# 固定のコンテンツ
 CONTENT="# はじめに
 
 # 問題
